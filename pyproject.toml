@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heartrisk"
+version = "1.0.0"
+description = "End-to-end MLOps pipeline for UCI Heart Disease classification (MLOps AIMLZG523 Assignment 1)"
+authors = [{name = "SHIVARAJA C M (2025AE05109)", email = "2025AE05109@wilp.bits-pilani.ac.in"}]
+requires-python = ">=3.10,<3.13"
+readme = "README.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "-ra"
+filterwarnings = ["ignore::DeprecationWarning", "ignore::FutureWarning", "ignore::UserWarning"]
+
+[tool.coverage.run]
+source = ["heartrisk"]
+omit = ["*/__main__.py"]

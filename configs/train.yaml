@@ -1,0 +1,52 @@
+# Training configuration - every value here is logged to MLflow for each run.
+seed: 42
+test_size: 0.20          # stratified hold-out, touched only for final evaluation
+cv_folds: 5              # StratifiedKFold (shuffled, seeded) on the training split
+refit_metric: roc_auc    # metric used by GridSearchCV to pick hyper-parameters
+decision_threshold: 0.5  # probability threshold for the positive class
+
+mlflow:
+  experiment_name: heart-disease-uci
+  registered_model_name: heart-risk-classifier
+
+# Model selection rule (documented in the report):
+#   1. Rank model families by mean cross-validated ROC-AUC (never by test or training score).
+#   2. If several families are within `tie_tolerance` of the best, choose the simplest one
+#      according to `simplicity_order` (easier to explain, audit and serve).
+selection:
+  metric: roc_auc
+  tie_tolerance: 0.01
+  simplicity_order: [logistic_regression, random_forest, gradient_boosting]
+
+models:
+  logistic_regression:
+    estimator: sklearn.linear_model.LogisticRegression
+    fixed_params:
+      solver: liblinear
+      max_iter: 2000
+    param_grid:
+      clf__C: [0.01, 0.1, 1.0, 10.0]
+      clf__penalty: [l1, l2]
+      clf__class_weight: [null, balanced]
+      features__add_hr_ratio: [true, false]
+
+  random_forest:
+    estimator: sklearn.ensemble.RandomForestClassifier
+    fixed_params:
+      n_estimators: 300
+      n_jobs: 1
+    param_grid:
+      clf__max_depth: [3, 5, null]
+      clf__min_samples_leaf: [1, 5]
+      clf__max_features: [sqrt, 0.5]
+      features__add_hr_ratio: [true, false]
+
+  gradient_boosting:
+    estimator: sklearn.ensemble.GradientBoostingClassifier
+    fixed_params:
+      subsample: 0.8
+    param_grid:
+      clf__n_estimators: [100, 200]
+      clf__learning_rate: [0.05, 0.1]
+      clf__max_depth: [2, 3]
+      features__add_hr_ratio: [true, false]

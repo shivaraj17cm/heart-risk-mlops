@@ -1,0 +1,186 @@
+# CI/CD pipeline: lint -> unit tests -> data + EDA + training -> Docker build & smoke test.
+# Any failing command fails its job, and downstream jobs (needs:) are skipped, so a code or
+# test error stops the pipeline with a red status and readable logs. `shell: bash` makes every
+# step run with `-eo pipefail`, so a failure is never hidden behind `| tee`. The only tolerated
+# failure is the best-effort log collection step that runs after an earlier failure.
+name: ci-cd
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  PYTHON_VERSION: "3.11"
+  IMAGE: heart-risk-api
+
+jobs:
+  lint:
+    name: 1. Lint (flake8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install flake8
+        run: pip install flake8==7.1.1
+      - name: Run flake8
+        run: flake8 src test scripts --count --show-source --statistics --tee --output-file=flake8-report.txt
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: flake8-report.txt
+          retention-days: 30
+
+  test:
+    name: 2. Unit tests (pytest)
+    runs-on: ubuntu-latest
+    needs: lint
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run tests with coverage
+        run: |
+          mkdir -p test-results
+          pytest --junitxml=test-results/junit.xml \
+                 --cov=heartrisk --cov-report=term-missing \
+                 --cov-report=xml:test-results/coverage.xml \
+                 --cov-report=html:test-results/htmlcov | tee test-results/pytest-output.txt
+          exit ${PIPESTATUS[0]}
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+  train:
+    name: 3. Data, EDA and model training
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Acquire dataset (checksum-verified)
+        run: python scripts/download_data.py 2>&1 | tee pipeline.log
+      - name: Validate and clean data
+        run: python -m heartrisk.data 2>&1 | tee -a pipeline.log; exit ${PIPESTATUS[0]}
+      - name: Exploratory data analysis
+        run: python -m heartrisk.eda 2>&1 | tee -a pipeline.log; exit ${PIPESTATUS[0]}
+      - name: Train, tune and track models (MLflow)
+        run: python -m heartrisk.train 2>&1 | tee -a pipeline.log; exit ${PIPESTATUS[0]}
+      - name: Verify packaged model (inference CLI)
+        run: python -m heartrisk.predict --input samples/sample_request.json | tee -a pipeline.log; exit ${PIPESTATUS[0]}
+      - name: Write metrics to job summary
+        run: |
+          python - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          m = json.load(open("reports/metrics.json"))
+          print("## Model comparison (5-fold CV on training split, hold-out test)\n")
+          print("| Model | CV ROC-AUC | CV Accuracy | CV Precision | CV Recall | Test ROC-AUC | Test Accuracy |")
+          print("|---|---|---|---|---|---|---|")
+          for r in m["models"]:
+              print(f"| {r['model']} | {r['cv_roc_auc_mean']:.3f} ± {r['cv_roc_auc_std']:.3f} | "
+                    f"{r['cv_accuracy_mean']:.3f} | {r['cv_precision_mean']:.3f} | {r['cv_recall_mean']:.3f} | "
+                    f"{r['test_roc_auc']:.3f} | {r['test_accuracy']:.3f} |")
+          print(f"\n**Selected:** `{m['selected_model']}` - {m['selection_reason']}")
+          EOF
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: model
+          path: artifacts/model/
+          retention-days: 30
+      - name: Upload reports, figures, MLflow store and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: training-outputs
+          path: |
+            reports/
+            data/raw/manifest.json
+            data/processed/heart_clean.csv
+            mlflow.db
+            mlruns/
+            pipeline.log
+          retention-days: 30
+
+  docker:
+    name: 4. Docker build and smoke test
+    runs-on: ubuntu-latest
+    needs: train
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: model
+          path: artifacts/model/
+      - name: Build image
+        run: docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:1.0.0 . 2>&1 | tee docker-build.log; exit ${PIPESTATUS[0]}
+      - name: Run container
+        run: docker run -d --name api -p 8000:8000 $IMAGE:1.0.0
+      - name: Wait for readiness
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:8000/ready; then echo; exit 0; fi
+            sleep 2
+          done
+          echo "API did not become ready"; docker logs api; exit 1
+      - name: Smoke test /predict
+        run: |
+          set -euo pipefail
+          resp=$(curl -fsS -X POST http://localhost:8000/predict \
+                   -H "Content-Type: application/json" -d @samples/sample_request.json)
+          echo "$resp" | tee smoke-test.json
+          echo "$resp" | python -c "import json,sys; r=json.load(sys.stdin); assert r['prediction'] in (0,1); assert 0.5 <= r['confidence'] <= 1; print('prediction OK')"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8000/predict \
+                   -H "Content-Type: application/json" -d @samples/sample_request_invalid.json)
+          test "$code" = "422" && echo "invalid input correctly rejected (422)"
+          curl -fsS http://localhost:8000/metrics | grep heartrisk_predictions_total
+      - name: Collect container logs
+        if: always()
+        run: docker logs api > container.log 2>&1 || true
+      - name: Upload Docker logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-logs
+          path: |
+            docker-build.log
+            container.log
+            smoke-test.json
+          retention-days: 30

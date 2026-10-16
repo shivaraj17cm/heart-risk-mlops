@@ -1,0 +1,24 @@
+# Deploy everything with:  kubectl apply -k deploy/
+# ConfigMaps are generated from the SAME files docker-compose mounts (single source of truth).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: heart-risk
+resources:
+  - k8s/00-namespace.yaml
+  - k8s/10-api-deployment.yaml
+  - k8s/11-api-service.yaml
+  - k8s/20-prometheus.yaml
+  - k8s/30-grafana.yaml
+configMapGenerator:
+  - name: prometheus-config
+    files:
+      - monitoring/prometheus/prometheus-k8s.yml
+  - name: grafana-datasources
+    files:
+      - monitoring/grafana/provisioning/datasources/datasource.yml
+  - name: grafana-dashboard-provider
+    files:
+      - monitoring/grafana/provisioning/dashboards/dashboards.yml
+  - name: grafana-dashboards
+    files:
+      - monitoring/grafana/dashboards/heart-risk-api.json

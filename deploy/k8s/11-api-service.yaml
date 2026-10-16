@@ -1,0 +1,18 @@
+# LoadBalancer Service: on Docker Desktop Kubernetes it is published on localhost:8080;
+# on Minikube run `minikube tunnel` to obtain an external IP; on a cloud cluster (GKE/EKS/AKS)
+# the provider allocates a public IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: heart-risk-api
+  namespace: heart-risk
+  labels:
+    app.kubernetes.io/name: heart-risk-api
+spec:
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: heart-risk-api
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

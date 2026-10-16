@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 120
+exclude = .git,__pycache__,.venv,venv,build,dist,mlruns,notebooks,.ipynb_checkpoints
+per-file-ignores =
+    src/heartrisk/plotting.py:E402

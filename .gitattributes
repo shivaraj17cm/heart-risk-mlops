@@ -1,0 +1,7 @@
+# Normalise line endings so scripts work identically on Windows, Prayogshala (Linux) and CI
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.joblib binary
+*.ps1 text eol=crlf
