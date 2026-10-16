@@ -1,0 +1,22 @@
+{
+  "rows_raw": 303,
+  "rows_clean": 303,
+  "duplicates_removed": 0,
+  "invalid_rows_removed": 0,
+  "missing_by_column": {
+    "ca": 4,
+    "thal": 2
+  },
+  "rows_with_missing": 6,
+  "target_counts": {
+    "0": 164,
+    "1": 139
+  },
+  "raw_num_counts": {
+    "0": 164,
+    "1": 55,
+    "2": 36,
+    "3": 35,
+    "4": 13
+  }
+}

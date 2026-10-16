@@ -1,0 +1,41 @@
+{
+  "best_params": {
+    "clf__learning_rate": 0.05,
+    "clf__max_depth": 2,
+    "clf__n_estimators": 100,
+    "features__add_hr_ratio": true
+  },
+  "cv": {
+    "cv_accuracy_mean": 0.8303571428571429,
+    "cv_accuracy_std": 0.04312993572281027,
+    "cv_precision_mean": 0.8326751147403322,
+    "cv_precision_std": 0.07576409070913015,
+    "cv_recall_mean": 0.8011857707509881,
+    "cv_recall_std": 0.08023423347942746,
+    "cv_f1_mean": 0.8117055956832978,
+    "cv_f1_std": 0.04795674419432802,
+    "cv_roc_auc_mean": 0.8755154668198146,
+    "cv_roc_auc_std": 0.027339883774310843,
+    "cv_train_roc_auc_mean": 0.9824636038119184,
+    "overfit_gap_roc_auc": 0.10694813699210381
+  },
+  "cv_best_fold_roc_auc": [
+    0.9297658862876254,
+    0.8569023569023569,
+    0.8601398601398602,
+    0.8671328671328671,
+    0.8636363636363636
+  ],
+  "test": {
+    "accuracy": 0.9016393442622951,
+    "precision": 0.8666666666666667,
+    "recall": 0.9285714285714286,
+    "f1": 0.896551724137931,
+    "roc_auc": 0.9534632034632033,
+    "specificity": 0.8787878787878788,
+    "tn": 29,
+    "fp": 4,
+    "fn": 2,
+    "tp": 26
+  }
+}
