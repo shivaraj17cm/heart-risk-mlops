@@ -23,6 +23,8 @@ defaults:
   run:
     shell: bash
 
+# Runner image is pinned (not ubuntu-latest) so the environment cannot change underneath the
+# pipeline; actions are pinned to Node 24-based major versions.
 env:
   PYTHON_VERSION: "3.11"
   IMAGE: heart-risk-api
@@ -30,11 +32,11 @@ env:
 jobs:
   lint:
     name: 1. Lint (flake8)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install flake8
@@ -43,7 +45,7 @@ jobs:
         run: flake8 src test scripts --count --show-source --statistics --tee --output-file=flake8-report.txt
       - name: Upload lint report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: lint-report
           path: flake8-report.txt
@@ -51,12 +53,12 @@ jobs:
 
   test:
     name: 2. Unit tests (pytest)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: lint
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -73,7 +75,7 @@ jobs:
           exit ${PIPESTATUS[0]}
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test-results
           path: test-results/
@@ -81,12 +83,12 @@ jobs:
 
   train:
     name: 3. Data, EDA and model training
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -118,14 +120,14 @@ jobs:
           print(f"\n**Selected:** `{m['selected_model']}` - {m['selection_reason']}")
           EOF
       - name: Upload model artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: model
           path: artifacts/model/
           retention-days: 30
       - name: Upload reports, figures, MLflow store and logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: training-outputs
           path: |
@@ -139,13 +141,13 @@ jobs:
 
   docker:
     name: 4. Docker build and smoke test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: train
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download trained model
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: model
           path: artifacts/model/
@@ -176,7 +178,7 @@ jobs:
         run: docker logs api > container.log 2>&1 || true
       - name: Upload Docker logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docker-logs
           path: |
