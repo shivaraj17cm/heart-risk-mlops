@@ -20,10 +20,12 @@ Tick ✅ once the file exists and has been checked.
 | 11 | `11_mlflow_registry.png` | 4 | Model registry: `heart-risk-classifier` with alias `champion` | MLflow UI | 6 | ✅ |
 | 12 | `12_pytest_local.png` | 5 | `pytest --cov=heartrisk` all passed + coverage table | Prayogshala | 7 | ✅ |
 | 13 | `13_flake8_clean.png` | 5 | `flake8 src test scripts` with no output, `echo $?` → 0 | Prayogshala | 7 | ✅ |
-| 14 | `14_github_repo.png` | 9 | GitHub repository home page (file tree + README) | GitHub | 8 | |
-| 15 | `15_actions_success.png` | 5 | GitHub Actions run: all 4 jobs green | GitHub | 7 | |
-| 16 | `16_actions_artifacts.png` | 5 | Run summary: metrics table + uploaded artifacts list | GitHub | 7 | |
-| 17 | `17_actions_failure.png` | 5 | Deliberately broken commit: run red, failing test visible, later jobs skipped | GitHub | 7 | |
+| 14 | `14_github_repo.png` | 9 | GitHub repository home page (file tree, commits) | GitHub | 8 | ✅ |
+| 15 | `15_actions_success.png` | 5 | GitHub Actions run #3: all 4 jobs green | GitHub | 7 | ✅ |
+| 16 | `16_actions_artifacts.png` | 5 | Run #4 summary: metrics table + 5 uploaded artifacts (pinned ubuntu-24.04, 0 warnings) | GitHub | 7 | ✅ |
+| 17 | `17_actions_failure.png` | 5 | PR #1 (deliberately failing test, branch `demo/ci-failure`): lint ✓, tests ✗, training + Docker skipped | GitHub | 7 | ✅ |
+| 17b | `17b_actions_failure_log.png` | 5 | Failing-test trace in the CI log (`AssertionError … assert 3 == 2`) | GitHub | 7 | ✅ |
+| 17c | `17c_actions_failure_summary.png` | 5 | `1 failed, 53 passed`, `Process completed with exit code 1`; test results still uploaded | GitHub | 7 | ✅ |
 | 18 | `18_docker_build.png` | 6 | `docker build` finished + `docker images heart-risk-api` | Laptop | 9 | |
 | 19 | `19_docker_run_predict.png` | 6 | `docker ps` + `/health` + `/predict` JSON response from the container | Laptop | 9 | |
 | 20 | `20_docker_invalid_input.png` | 6 | 422 response for `samples/sample_request_invalid.json` | Laptop | 9 | |
