@@ -23,9 +23,12 @@ RUN pip install -r requirements-serve.txt
 COPY src/ ./src/
 COPY artifacts/model/ ./artifacts/model/
 
-# 3) run as an unprivileged user
-RUN useradd --create-home --uid 10001 appuser && chown -R appuser /app
-USER appuser
+# 3) run as an unprivileged user. USER is numeric so Kubernetes (runAsNonRoot) can verify
+#    the container is not root without resolving a user name from /etc/passwd.
+RUN groupadd --gid 10001 appuser \
+ && useradd --uid 10001 --gid 10001 --create-home appuser \
+ && chown -R 10001:10001 /app
+USER 10001:10001
 
 EXPOSE 8000
 

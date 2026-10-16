@@ -26,10 +26,11 @@ Tick ✅ once the file exists and has been checked.
 | 17 | `17_actions_failure.png` | 5 | PR #1 (deliberately failing test, branch `demo/ci-failure`): lint ✓, tests ✗, training + Docker skipped | GitHub | 7 | ✅ |
 | 17b | `17b_actions_failure_log.png` | 5 | Failing-test trace in the CI log (`AssertionError … assert 3 == 2`) | GitHub | 7 | ✅ |
 | 17c | `17c_actions_failure_summary.png` | 5 | `1 failed, 53 passed`, `Process completed with exit code 1`; test results still uploaded | GitHub | 7 | ✅ |
-| 18 | `18_docker_build.png` | 6 | `docker build` finished + `docker images heart-risk-api` | Laptop | 9 | |
-| 19 | `19_docker_run_predict.png` | 6 | `docker ps` + `/health` + `/predict` JSON response from the container | Laptop | 9 | |
-| 20 | `20_docker_invalid_input.png` | 6 | 422 response for `samples/sample_request_invalid.json` | Laptop | 9 | |
-| 21 | `21_swagger_docs.png` | 6 | `/docs` OpenAPI page of the running API | Laptop | 9 | |
+| 18 | `18_docker_build.png` | 6 | `docker build --no-cache`: 14/14 FINISHED, 7 Dockerfile steps (rebuilt after disk incident) | Laptop | 9 | ✅ |
+| 18b | `18b_docker_nonroot_user.png` | 6 | `docker images` (image 4746b2a256ba, 163 MB) + `id` → uid=10001(appuser) non-root | Laptop | 9 | ✅ |
+| 19 | `19_docker_run_predict.png` | 6 | Container Up (healthy); `/health`; `/predict` high-risk 1/0.9615, low-risk 0/0.038 | Laptop | 9 | ✅ |
+| 20 | `20_docker_invalid_input.png` | 6 | HTTP 422 with per-field errors + structured JSON container logs (no patient data) | Laptop | 9 | ✅ |
+| 21 | `21_swagger_docs.png` | 6 | `/docs` OpenAPI page: 5 endpoints + schemas | Laptop | 9 | ✅ |
 | 22 | `22_k8s_apply.png` | 7 | `kubectl apply -k deploy/` output + `rollout status` succeeded | Laptop | 10 | |
 | 23 | `23_k8s_pods_services.png` | 7 | `kubectl -n heart-risk get pods,svc -o wide` (2 API pods Running, LoadBalancer EXTERNAL-IP) | Laptop | 10 | |
 | 24 | `24_k8s_predict.png` | 7 | `/predict` request through the LoadBalancer (port 8080) with JSON response | Laptop | 10 | |
