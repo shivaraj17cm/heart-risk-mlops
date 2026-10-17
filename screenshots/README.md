@@ -37,7 +37,8 @@ Tick ✅ once the file exists and has been checked.
 | 23 | `23_k8s_pods_services.png` | 7 | `get deploy,pods,svc -o wide`: API 2/2, 4 pods Running 0 restarts, 3 LoadBalancer services on localhost (8080/9090/3000) | Laptop | 10 | ✅ |
 | 24 | `24_k8s_predict.png` | 7 | `/health` + `/predict` through the LoadBalancer :8080 → 1/0.9615 and 0/0.038 (identical to Docker) | Laptop | 10 | ✅ |
 | 25 | `25_k8s_describe.png` | 7 | `describe deployment`: 2 replicas, RollingUpdate 0 unavailable/1 surge, limits/requests, liveness/readiness/startup probes, Prometheus annotations | Laptop | 10 | ✅ |
-| 26 | `26_api_logs.png` | 8 | `kubectl -n heart-risk logs deploy/heart-risk-api` JSON request/prediction logs | Laptop | 11 | |
+| 26 | `26_api_logs.png` | 8 | K8s pod logs filtered to /predict: structured JSON request lines (200/422, latency) + prediction events (class, confidence, model version), no patient data | Laptop | 11 | ✅ |
+| 26b | `26b_api_logs_both_pods.png` | 8 | Logs from both replicas (`--prefix`): request id, path, status, latency for probe traffic | Laptop | 11 | ✅ |
 | 27 | `27_prometheus_targets.png` | 8 | Prometheus targets: heart-risk-api 2/2 UP (Kubernetes pod discovery, pod/env labels) | Laptop | 11 | ✅ |
 | 28 | `28_grafana_dashboard.png` | 8 | Grafana: 547 predictions, 0.55 req/s, 7.3 % error ratio, 2 pods up, rate by endpoint/status, latency p50/p95, class mix, errors by reason | Laptop | 11 | ✅ |
 | 28b | `28b_grafana_confidence.png` | 8 | Grafana: mean prediction confidence over time (≈96 % samples → ≈78 % synthetic traffic) | Laptop | 11 | ✅ |

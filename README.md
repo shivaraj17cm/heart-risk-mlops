@@ -16,6 +16,18 @@ FastAPI service, Kubernetes deployment, and Prometheus + Grafana monitoring.
 
 > ⚠️ Academic exercise only. The model is **not** a clinically validated diagnostic tool and must not be used for medical decisions.
 
+## Results at a glance (real UCI Cleveland data, run in the BITS Prayogshala lab)
+
+| Model | CV ROC-AUC (5-fold) | Test ROC-AUC | Test accuracy | Test precision | Test recall |
+|---|---|---|---|---|---|
+| **Logistic Regression (selected)** | **0.907 ± 0.019** | **0.959** | **0.885** | **0.818** | **0.964** |
+| Random Forest | 0.901 ± 0.025 | 0.960 | 0.902 | 0.867 | 0.929 |
+| Gradient Boosting | 0.876 ± 0.027 | 0.953 | 0.902 | 0.867 | 0.929 |
+
+Selection rule: highest mean CV ROC-AUC (test set never used for selection); LR also has the smallest
+train-vs-CV gap (0.024). Identical numbers were reproduced by GitHub Actions on Python 3.11.
+Full write-up: [`report/MLOps_Assignment1_Report_2025AE05109.pdf`](report/MLOps_Assignment1_Report_2025AE05109.pdf).
+
 ---
 
 ## 1. Architecture
@@ -69,7 +81,7 @@ FastAPI service, Kubernetes deployment, and Prometheus + Grafana monitoring.
 ## 4. Setup (clean environment)
 
 ```bash
-git clone https://github.com/<github-username>/heart-risk-mlops.git
+git clone https://github.com/shivaraj17cm/heart-risk-mlops.git
 cd heart-risk-mlops
 python -m venv .venv
 source .venv/bin/activate            # Windows PowerShell: .venv\Scripts\Activate.ps1
@@ -136,8 +148,8 @@ PowerShell: `Invoke-RestMethod -Uri http://localhost:8000/predict -Method Post -
 ```
 Response:
 ```json
-{"prediction": 1, "label": "heart disease present", "probability_disease": 0.87,
- "confidence": 0.87, "model_version": "1.0.0+<git-sha>", "request_id": "…"}
+{"prediction": 1, "label": "heart disease present", "probability_disease": 0.9615,
+ "confidence": 0.9615, "model_version": "1.0.0+b00a9c9", "request_id": "…"}
 ```
 `confidence` is the probability of the predicted class. Invalid input → HTTP 422 with a per-field
 error list. Other endpoints: `GET /health` (liveness), `GET /ready` (model loaded), `GET /metrics`
@@ -178,3 +190,31 @@ the run red and stops the jobs that depend on it.
 Pinned dependency versions · fixed seeds (split, CV, models) · checksum-verified data · all learned
 preprocessing inside one serialized pipeline · config and data hash logged to MLflow · relative paths
 only · the same tests run locally and in CI.
+
+## 13. API access (deliverable: "deployed API URL or access instructions")
+
+The API is deployed on **local Kubernetes (Docker Desktop)**; no public cloud endpoint was created.
+After `docker build -t heart-risk-api:1.0.0 .` and `kubectl apply -k deploy/` it is reachable at:
+
+| Endpoint | URL |
+|---|---|
+| Prediction | `POST http://localhost:8080/predict` |
+| Health / readiness | `GET http://localhost:8080/health`, `GET http://localhost:8080/ready` |
+| OpenAPI docs | `http://localhost:8080/docs` |
+| Prometheus / Grafana | `http://localhost:9090` / `http://localhost:3000` |
+
+Example (PowerShell: use `curl.exe`):
+```bash
+curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -d @samples/sample_request.json
+# {"prediction":1,"label":"heart disease present","probability_disease":0.9615,"confidence":0.9615,"model_version":"1.0.0+b00a9c9",...}
+```
+
+## 14. Evidence, report and execution environments
+
+* `screenshots/` — 37 genuine captures indexed in [`screenshots/README.md`](screenshots/README.md)
+  (Prayogshala lab: 01–13 · GitHub/CI: 14–17c · Docker: 18–21 · Kubernetes: 22–25 · Monitoring: 26–28b).
+  Prayogshala session tokens visible in the browser address bar were redacted.
+* `report/MLOps_Assignment1_Report_2025AE05109.pdf` — 10-page report.
+* Executed notebooks in `notebooks/` contain the outputs of the Prayogshala run.
+* Environments: Prayogshala VM (data, EDA, training, MLflow, tests) · GitHub Actions (CI/CD) ·
+  Windows laptop with Docker Desktop 29.3 and Kubernetes v1.34.1 (container, deployment, monitoring).
