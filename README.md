@@ -211,7 +211,7 @@ curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -
 
 ## 14. Evidence, report and execution environments
 
-* `screenshots/` — 37 genuine captures indexed in [`screenshots/README.md`](screenshots/README.md)
+* `screenshots/` — 36 genuine captures indexed in [`screenshots/README.md`](screenshots/README.md)
   (Prayogshala lab: 01–13 · GitHub/CI: 14–17c · Docker: 18–21 · Kubernetes: 22–25 · Monitoring: 26–28b).
   Prayogshala session tokens visible in the browser address bar were redacted.
 * `report/MLOps_Assignment1_Report_2025AE05109.pdf` — 10-page report.
