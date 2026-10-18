@@ -8,6 +8,8 @@
 | **Student number** | 2025AE05109 |
 | **Email** | 2025AE05109@wilp.bits-pilani.ac.in |
 | **Contribution** | 100 % (individual assignment) |
+| **Demo video** | [Pipeline walkthrough, 8 min 52 s (Google Drive)](https://drive.google.com/file/d/1cYS4DSD7XL4Otd4_b4uulv6-IkJaSwq9/view) |
+| **Report** | [`report/MLOps_Assignment1_Report_2025AE05109.pdf`](report/MLOps_Assignment1_Report_2025AE05109.pdf) |
 
 A reproducible pipeline that predicts the presence of heart disease from the **UCI Heart Disease
 (Cleveland)** dataset. It covers data acquisition and EDA, feature engineering, three tuned models,
@@ -215,6 +217,7 @@ curl -X POST http://localhost:8080/predict -H "Content-Type: application/json" -
   (Prayogshala lab: 01–13 · GitHub/CI: 14–17c · Docker: 18–21 · Kubernetes: 22–25 · Monitoring: 26–28b).
   Prayogshala session tokens visible in the browser address bar were redacted.
 * `report/MLOps_Assignment1_Report_2025AE05109.pdf` — 10-page report.
+* Demo video (8 min 52 s): https://drive.google.com/file/d/1cYS4DSD7XL4Otd4_b4uulv6-IkJaSwq9/view — dataset, EDA, training, MLflow, tests, CI/CD, Docker API, Kubernetes, logs, Prometheus and Grafana.
 * Executed notebooks in `notebooks/` contain the outputs of the Prayogshala run.
 * Environments: Prayogshala VM (data, EDA, training, MLflow, tests) · GitHub Actions (CI/CD) ·
   Windows laptop with Docker Desktop 29.3 and Kubernetes v1.34.1 (container, deployment, monitoring).
